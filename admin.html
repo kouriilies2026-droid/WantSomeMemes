@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - Review</title>
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/cards.css">
+    <link rel="stylesheet" href="css/admin.css">
+    <script type="module">
+        window.ADMIN_HASH = '620926d23b807342d97429ed665995727000f85c91ff9d80d9aa9033e049851c';
+    </script>
+</head>
+
+<body>
+    <div id="accessDenied" class="access-denied">
+        <div class="login-card">
+            <h2 id="deniedTitle">🔒 Admin Panel</h2>
+            <p id="deniedMessage" class="muted-text"></p>
+            <label for="adminPasswordInput" class="admin-label">Admin password</label>
+            <input id="adminPasswordInput" type="password" placeholder="Enter admin password" class="admin-input"
+                autocomplete="current-password">
+            <input id="adminPasswordConfirm" type="password" placeholder="Confirm password" class="admin-input hidden">
+            <button id="adminActionBtn" type="button" class="admin-btn admin-btn-primary"></button>
+            <p id="adminLoginError" class="warning-text small-text"></p>
+        </div>
+    </div>
+
+    <div id="adminContent" class="page hidden">
+        <a href="index.html" class="nav-link">← Back to Website</a>
+        <div class="flex-between">
+            <h1 class="no-margin">👑 Admin Panel - Meme Review</h1>
+        </div>
+        <div class="summary-row">
+            <span class="pill" id="pendingStatus">Pending: 0</span>
+            <span class="pill" id="approvedStatus">Approved: 0</span>
+            <span id="langToggleWrap"></span>
+            <a href="view-memes.html" class="nav-link no-margin">View Public Library →</a>
+        </div>
+        <p class="muted-text">Review submissions before publishing them.</p>
+        <div id="storageWarning" class="cloud-status hidden storage-warning"></div>
+        <div id="cloudStatus" class="cloud-status">Cloud sync: not configured.</div>
+
+        <div class="actions-row">
+            <a href="submit.html" class="nav-link no-margin">Submit New Meme →</a>
+            <button id="clearPending" class="btn-secondary">Clear Pending</button>
+            <button id="clearApproved" class="btn-reject">Clear Approved</button>
+            <button id="exportBtn" class="btn-edit admin-btn-orange">Export JSON</button>
+            <button id="importBtn" class="btn-edit admin-btn-cyan">Import JSON</button>
+            <input type="file" id="importFileInput" accept=".json" class="hidden">
+        </div>
+
+        <div class="bulk-box">
+            <h3>Bulk Import from /videos/</h3>
+            <p>Paste filenames (one per line). Each entry will be created as pending, referencing
+                <code>/videos/filename</code>.</p>
+            <textarea id="bulkImportInput" rows="6"
+                placeholder="video1.mp4&#10;video2.webm&#10;funny_clip.mp4&#10;sound_effect.mp3"
+                class="bulk-textarea"></textarea>
+            <div class="flex-row mt-8">
+                <button id="bulkImportBtn" class="admin-btn admin-btn-primary bulk-btn">Add to Review Queue</button>
+                <span id="bulkImportResult" class="result-text"></span>
+            </div>
+        </div>
+
+        <div class="admin-toolbar">
+            <input id="adminSearch" type="text" placeholder="Search by name, tag, category...">
+            <select id="adminStatusFilter">
+                <option value="all">All Status</option>
+                <option value="pending">Pending Only</option>
+                <option value="approved">Approved Only</option>
+            </select>
+            <button id="clearAdminSearch" type="button">Clear</button>
+        </div>
+
+        <div class="admin-table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Media Preview</th>
+                        <th>Details</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="memeTableBody"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <script type="importmap">
+    {
+        "imports": {
+            "firebase/app": "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js",
+            "firebase/firestore": "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js",
+            "firebase/storage": "https://www.gstatic.com/firebasejs/10.13.0/firebase-storage.js",
+            "firebase/auth": "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js"
+        }
+    }
+    </script>
+    <script type="module" src="js/admin.js"></script>
+</body>
+
+</html>

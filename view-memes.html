@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meme Library</title>
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/cards.css">
+    <link rel="stylesheet" href="css/view.css">
+</head>
+<body>
+    <div class="toast" id="toast"></div>
+    <div class="fullscreen-overlay" id="fullscreenOverlay">
+        <button class="close-fullscreen" id="closeFullscreenBtn">✕</button>
+        <div id="fullscreenContent"></div>
+    </div>
+    <div class="page">
+        <a href="index.html" class="header-link"><span class="material-icons">arrow_back</span> Back to Home</a>
+        <h2>Meme Library</h2>
+        <p class="intro">Browse approved green-screen assets with filters and quick actions. <span id="langToggleWrap"></span></p>
+        <div class="shortcuts-hint" id="shortcutsHint">
+            <span class="material-icons icon-sm">keyboard</span>
+            <kbd>Space</kbd> Play/Pause &nbsp; <kbd>F</kbd> Favorite &nbsp; <kbd>C</kbd> Copy Path &nbsp; <kbd>M</kbd> Mute
+        </div>
+        <div id="syncStatus" class="sync-status-box">
+            <span class="material-icons rotating-icon">sync</span>
+            <span id="syncStatusText">Syncing cloud database...</span>
+        </div>
+        <div id="storageWarning" class="storage-warning-box hidden"></div>
+        <div class="settings-box" id="videosFolderBox">
+            <span class="material-icons">folder_open</span>
+            <span id="videosFolderStatus">No videos folder selected</span>
+            <button id="pickVideosFolderBtn" type="button">📁 Select Videos Folder</button>
+        </div>
+        <div class="toolbar">
+            <input id="searchInput" type="text" placeholder="Search by name, tag, category...">
+            <select id="typeFilter"><option value="">All Types</option><option value="Video">Video</option><option value="Audio">Audio</option><option value="Image">Image</option></select>
+            <select id="categoryFilter"><option value="">All Categories</option></select>
+            <select id="sortFilter"><option value="newest">Newest First</option><option value="oldest">Oldest First</option><option value="name">Name A-Z</option></select>
+            <select id="favoritesFilter"><option value="all">All Memes</option><option value="favorites">Favorites Only</option></select>
+            <button id="clearFiltersBtn" type="button">Clear</button>
+            <a class="link-btn" href="submit.html">Submit a Meme →</a>
+        </div>
+        <div class="meta-row">
+            <span id="approvedCount">Approved: 0</span>
+            <span id="resultsCount">Showing 0 entries</span>
+            <span id="favoritesCount">Favorites: 0</span>
+        </div>
+        <div class="grid" id="memeGrid"></div>
+        <div class="pagination-row" id="paginationControls">
+            <button id="prevPageBtn" type="button" class="page-btn">← Previous</button>
+            <span id="pageInfo" class="page-info">Page 1</span>
+            <button id="nextPageBtn" type="button" class="page-btn">Next →</button>
+        </div>
+        <div id="downloadTableContainer"></div>
+        <div id="statsSection" class="stats-section">
+            <h3 class="stats-title">📊 Statistics</h3>
+            <div class="stats-tabs">
+                <button class="stats-tab active" data-tab="viewed">Most Viewed</button>
+                <button class="stats-tab" data-tab="downloaded">Most Downloaded</button>
+                <button class="stats-tab" data-tab="favorited">Most Favorited</button>
+                <button class="stats-tab" data-tab="trending">Trending</button>
+            </div>
+            <div id="statsContent" class="stats-content"></div>
+        </div>
+    </div>
+
+    <script type="importmap">
+    {
+        "imports": {
+            "firebase/app": "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js",
+            "firebase/firestore": "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js",
+            "firebase/storage": "https://www.gstatic.com/firebasejs/10.13.0/firebase-storage.js",
+            "firebase/auth": "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js"
+        }
+    }
+    </script>
+    <script src="https://unpkg.com/wavesurfer.js@7"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/fuse.js/7.0.0/fuse.min.js"></script>
+    <script type="module" src="js/view-memes.js"></script>
+</body>
+</html>

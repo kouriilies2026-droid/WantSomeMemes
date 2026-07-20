@@ -1,0 +1,27 @@
+body { padding: 24px; display: flex; flex-direction: column; align-items: center; }
+header { width: min(860px, 100%); padding: 8px 0 16px; display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+header a { text-decoration: none; color: #a0a0a0; display: inline-flex; align-items: center; gap: 6px; transition: color var(--transition-normal); }
+header a:hover { color: #00ff66; }
+h1 { font-size: clamp(1.9rem, 3vw, 2.5rem); margin: 8px 0 10px; color: #fff; }
+.status-row { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; color: #a0a0a0; font-size: 0.95rem; margin-bottom: 12px; }
+
+.method-tabs { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
+.method-tab { flex: 1; min-width: 130px; display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 12px 10px; border: 1px solid #2a2a2a; border-radius: 10px; background: #161616; color: #c8c8c8; cursor: pointer; font-size: 0.92rem; transition: all var(--transition-normal); }
+.method-tab:hover { border-color: #00ff66; color: #fff; }
+.method-tab.active { border-color: #00ff66; color: #00ff66; background: rgba(0,255,102,0.08); }
+.method-tab .material-icons { font-size: 1.2rem; }
+.method-panel.hidden { display: none; }
+#memeFile {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0,0,0,0); border: 0; opacity: 0;
+}
+.url-input { width: 100%; padding: 12px; border: 1px solid #2a2a2a; border-radius: 10px; background: #101010; color: #fff; font-size: 0.95rem; box-sizing: border-box; }
+.url-input:focus { outline: none; border-color: #00ff66; }
+.hidden { display: none !important; }
+
+@media (max-width: 600px) {
+  body { padding: 12px; }
+  header { gap: 8px; }
+  .status-row { font-size: 0.85rem; }
+  .method-tab { min-width: 100px; font-size: 0.82rem; }
+}

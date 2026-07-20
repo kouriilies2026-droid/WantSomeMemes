@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Want Some Memes - Home</title>
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/cards.css">
+</head>
+<body>
+    <div class="hero-card">
+        <h1>Want Some Memes?</h1>
+        <p class="subtitle">A polished hub for premium green-screen meme assets. Submit, review, and publish content in one place.</p>
+        <div class="stats-grid">
+            <div class="stat-card"><span>Pending</span><strong class="stat-number" id="homePending">0</strong></div>
+            <div class="stat-card"><span>Approved</span><strong class="stat-number" id="homeApproved">0</strong></div>
+            <div class="stat-card"><span>Library</span><strong class="stat-number" id="homeLibrary">Ready</strong></div>
+        </div>
+        <div class="buttons-container">
+            <a href="submit.html" class="cta-button"><span class="material-icons">add_circle_outline</span> Share Your Meme</a>
+            <a href="view-memes.html" class="secondary-link">Browse Existing Memes →</a>
+            <a href="admin.html" class="secondary-link">Admin Panel — Review Submissions →</a>
+            <span id="langToggleWrap"></span>
+        </div>
+        <div class="cloud-box">
+            <strong>Cloud sync option:</strong> you can connect Firebase and keep pending/approved memes available across devices. This stays fully optional and falls back to local storage when not configured.
+        </div>
+    </div>
+
+    <script type="module" src="js/index.js"></script>
+</body>
+</html>

@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Share Your Meme</title>
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/cards.css">
+    <link rel="stylesheet" href="css/submit.css">
+</head>
+<body>
+    <header>
+        <a href="index.html"><span class="material-icons">arrow_back</span> Back to Home</a>
+        <a href="admin.html" class="admin-link">View Admin Panel →</a>
+        <span id="langToggleWrap"></span>
+    </header>
+    <h1>Submit Your Masterpiece</h1>
+    <div class="status-row">
+        <span id="pendingCount">Pending: 0</span>
+        <span id="approvedCount">Approved: 0</span>
+    </div>
+    <p class="subtitle-text">Drop a file or click to upload, then add details below.</p>
+    <p class="note">Submissions are stored via IndexedDB by default. You can optionally enable Firebase Cloud Sync for cross-device access.</p>
+
+    <div class="form-container">
+        <div id="formStatus" class="status-banner"></div>
+        <form id="uploadForm">
+            <div class="form-group">
+                <label>How do you want to add your video?</label>
+                <div class="method-tabs" id="methodTabs">
+                    <button type="button" class="method-tab active" data-method="upload"><span class="material-icons">upload_file</span> Upload File</button>
+                    <button type="button" class="method-tab" data-method="url"><span class="material-icons">link</span> Video Link</button>
+                </div>
+                <div class="note">No need to have the video in your videos folder — just upload a file from your device, or paste a download / streaming link.</div>
+            </div>
+
+            <div class="form-group method-panel" id="panel-upload">
+                <label>Select Audio / Video / Image File</label>
+                <div id="dropzone" class="dropzone">
+                    <span class="material-icons">cloud_upload</span>
+                    <p>Drag & drop a file here, or click to browse</p>
+                    <input type="file" id="memeFile" accept="video/*,audio/*,image/*">
+                </div>
+                <div id="fileInfo" class="note">No file chosen yet.</div>
+                <div id="previewBox" class="preview-box">Preview will appear here.</div>
+                <button type="button" id="saveFileButton" class="submit-button" disabled>💾 Save Selected File to Videos Folder</button>
+                <div id="videoSavingHelp" class="note">Save the selected media to the videos folder. Chrome users can pick the folder directly; other browsers will download the file to save manually to the videos folder.</div>
+            </div>
+
+            <div class="form-group method-panel hidden" id="panel-url">
+                <label>Paste Video / Audio Link</label>
+                <input type="url" id="memeUrl" class="url-input" placeholder="https://example.com/clip.mp4 or a downloadable / stream link">
+                <div class="note">Works with direct file links (.mp4, .webm, .mp3…) and most streaming/download URLs. We’ll preview it before you submit.</div>
+                <button type="button" id="testUrlBtn" class="submit-button secondary-button">Preview Link</button>
+                <div id="urlStatus" class="note">No link tested yet.</div>
+            </div>
+
+            <div class="form-group">
+                <label>Cloud Sync Setup (Optional)</label>
+                <div class="cloud-settings">
+                    <div class="note mt0">Add these Firebase values to enable cloud sync. Leave empty to keep using local storage.</div>
+                    <input id="firebaseApiKey" type="text" placeholder="Firebase API Key">
+                    <input id="firebaseAuthDomain" type="text" placeholder="Firebase Auth Domain">
+                    <input id="firebaseProjectId" type="text" placeholder="Firebase Project ID">
+                    <input id="firebaseStorageBucket" type="text" placeholder="Firebase Storage Bucket">
+                    <input id="firebaseAppId" type="text" placeholder="Firebase App ID">
+                    <input id="firebaseMeasurementId" type="text" placeholder="Firebase Measurement ID (optional)">
+                    <button type="button" id="saveCloudSettingsBtn" class="submit-button">Save Cloud Settings</button>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Media Type</label>
+                <select id="mediaType"><option>Video</option><option>Audio</option><option>Image</option></select>
+            </div>
+
+            <div class="form-group">
+                <label>Language</label>
+                <select id="memeLang"><option>Arabic</option><option>English</option><option>Other / None</option></select>
+            </div>
+
+            <div class="form-group">
+                <label>Meme Category</label>
+                <select id="memeCategory"></select>
+            </div>
+
+            <div class="form-group">
+                <label>Meme Tag</label>
+                <input type="text" id="memeTag" placeholder="e.g. Laugh, Scary, Fail, Epic">
+                <div class="note">Leave empty to use the original file name as the tag, or type your own.</div>
+            </div>
+
+            <div class="form-group">
+                <label>Special Tag</label>
+                <select id="specialTag"></select>
+            </div>
+
+            <button type="submit" class="submit-button">Submit for Review</button>
+        </form>
+        <button id="clearData" class="submit-button secondary-button">Clear All Submissions</button>
+    </div>
+
+    <script type="importmap">
+    {
+        "imports": {
+            "firebase/app": "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js",
+            "firebase/firestore": "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js",
+            "firebase/storage": "https://www.gstatic.com/firebasejs/10.13.0/firebase-storage.js",
+            "firebase/auth": "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js"
+        }
+    }
+    </script>
+    <script type="module" src="js/submit.js"></script>
+</body>
+</html>
