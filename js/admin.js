@@ -2,6 +2,7 @@ import { getAllMemes, putMeme, deleteMeme, getMediaSource, escapeHtml, showToast
 import { initLanguage, createLangToggle } from './i18n.js';
 import { categories, specialTags, languages, audioExts, imageExts } from './categories.js';
 import { exportTrimmed, exportTransparent } from './export.js';
+import { syncToIndexedDB } from './firebase.js';
 
 initLanguage();
 
@@ -270,7 +271,7 @@ function renderRow(meme, status, tbody) {
 async function saveMeme(id) {
   if (!checkAdminAccess()) { showToast('Access denied. Please log in.'); showLoginForm(); return; }
   const all = await getAllMemes();
-  const target = all.find(m => m.id === id);
+  const target = all.find(m => String(m.id) === String(id));
   if (!target || target.status !== 'pending') return;
   const tagEl = document.getElementById('tag-' + id);
   const catEl = document.getElementById('cat-' + id);
@@ -289,7 +290,7 @@ async function saveMeme(id) {
 async function acceptMeme(id) {
   if (!checkAdminAccess()) { showToast('Access denied. Please log in.'); showLoginForm(); return; }
   const all = await getAllMemes();
-  const target = all.find(m => m.id === id && m.status === 'pending');
+  const target = all.find(m => String(m.id) === String(id) && m.status === 'pending');
   if (!target) return;
   const tagInput = document.getElementById('tag-' + id);
   if (tagInput) target.tag = tagInput.value.trim() || target.tag;
@@ -306,7 +307,7 @@ async function acceptMeme(id) {
 async function rejectMeme(id, listType) {
   if (!checkAdminAccess()) { showToast('Access denied. Please log in.'); showLoginForm(); return; }
   const all = await getAllMemes();
-  const target = all.find(m => m.id === id);
+  const target = all.find(m => String(m.id) === String(id));
   if (!target) return;
   const fb = await loadFirebase();
   if (fb && target.cloudDocId) await fb.deleteCloudMeme(target);
@@ -470,7 +471,7 @@ function init() {
   checkStorageLimit();
   const langWrap = document.getElementById('langToggleWrap');
   if (langWrap) langWrap.appendChild(createLangToggle());
-  loadMemes();
+  syncToIndexedDB().then(() => loadMemes());
 }
 
 if (document.readyState === 'loading') {

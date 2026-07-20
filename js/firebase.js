@@ -3,6 +3,7 @@ import { getFirestore, collection, addDoc, doc, setDoc, deleteDoc, getDocs, onSn
 import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from 'firebase/auth';
 import { FIREBASE_CONFIG_KEYS } from './config.js';
+import { FIREBASE_CONFIG } from './config.firebase.js';
 import { getAllMemes, putMeme } from './app.js';
 
 let app = null;
@@ -13,8 +14,11 @@ let unsubscribe = null;
 const listeners = [];
 
 export function getConfig() {
-  const c = {};
-  Object.entries(FIREBASE_CONFIG_KEYS).forEach(([k, sk]) => { c[k] = localStorage.getItem(sk) || ''; });
+  const c = { ...FIREBASE_CONFIG };
+  Object.entries(FIREBASE_CONFIG_KEYS).forEach(([k, sk]) => {
+    const v = localStorage.getItem(sk);
+    if (v) c[k] = v;
+  });
   return c;
 }
 
@@ -138,17 +142,18 @@ export async function syncToIndexedDB() {
     const snap = await getDocs(collection(r.db, 'memes'));
     const cloud = snap.docs.map(d => ({ ...d.data(), cloudDocId: d.id }));
     const existing = await getAllMemes();
-    const seen = new Set(existing.map(m => String(m.cloudDocId || m.id)));
+    const seen = new Map(existing.map(m => [String(m.cloudDocId || m.id), m]));
     for (const m of cloud) {
       const key = String(m.cloudDocId || m.id);
-      if (seen.has(key)) {
-        const old = existing.find(x => String(x.cloudDocId || x.id) === key);
-        if (old && (m.updatedAt || m.cloudSyncedAt || 0) > (old.updatedAt || old.cloudSyncedAt || 0)) {
+      const old = seen.get(key);
+      if (!old) {
+        await putMeme(m);
+      } else {
+        const cloudTime = m.updatedAt || m.cloudSyncedAt || 0;
+        const localTime = old.updatedAt || old.cloudSyncedAt || 0;
+        if (cloudTime > localTime || old.status !== m.status || old.fileUrl !== m.fileUrl) {
           await putMeme({ ...old, ...m });
         }
-      } else {
-        await putMeme(m);
-        seen.add(key);
       }
     }
   } catch (e) { console.warn('Cloud sync:', e); }
