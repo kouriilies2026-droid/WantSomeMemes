@@ -74,7 +74,7 @@ export async function deleteMeme(id) {
   return new Promise((resolve, reject) => {
     const tx = db.transaction('memes', 'readwrite');
     const store = tx.objectStore('memes');
-    const key = typeof id === 'string' ? id : String(id);
+    const key = (typeof id === 'string' || typeof id === 'number') ? id : String(id);
     const req = store.delete(key);
     req.onsuccess = () => {
       notifyMemesChanged();
