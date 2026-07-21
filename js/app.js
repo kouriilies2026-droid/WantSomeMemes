@@ -73,12 +73,14 @@ export async function deleteMeme(id) {
   const db = await openDB();
   return new Promise((resolve, reject) => {
     const tx = db.transaction('memes', 'readwrite');
-    const req = tx.objectStore('memes').delete(Number(id));
+    const store = tx.objectStore('memes');
+    const key = typeof id === 'string' ? id : String(id);
+    const req = store.delete(key);
     req.onsuccess = () => {
       notifyMemesChanged();
       resolve();
     };
-    req.onerror = () => reject();
+    req.onerror = () => reject(req.error);
   });
 }
 
