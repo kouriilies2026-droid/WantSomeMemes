@@ -9,6 +9,13 @@
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="css/cards.css">
     <link rel="stylesheet" href="css/submit.css">
+    <script type="importmap">
+    {
+        "imports": {
+            "@supabase/supabase-js": "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm"
+        }
+    }
+    </script>
 </head>
 <body>
     <header>
@@ -22,7 +29,7 @@
         <span id="approvedCount">Approved: 0</span>
     </div>
     <p class="subtitle-text">Drop a file or click to upload, then add details below.</p>
-    <p class="note">Submissions are stored via IndexedDB by default. You can optionally enable Firebase Cloud Sync for cross-device access.</p>
+    <p class="note">Submissions are stored via IndexedDB by default. You can optionally enable Supabase Cloud Sync for cross-device access.</p>
 
     <div class="form-container">
         <div id="formStatus" class="status-banner"></div>
@@ -57,21 +64,18 @@
                 <div id="urlStatus" class="note">No link tested yet.</div>
             </div>
 
-            <div class="form-group">
-                <label>Cloud Sync Setup (Optional)</label>
-                <div class="cloud-settings">
-                    <div class="note mt0">Add these Firebase values to enable cloud sync. Leave empty to keep using local storage.</div>
-                    <input id="firebaseApiKey" type="text" placeholder="Firebase API Key">
-                    <input id="firebaseAuthDomain" type="text" placeholder="Firebase Auth Domain">
-                    <input id="firebaseProjectId" type="text" placeholder="Firebase Project ID">
-                    <input id="firebaseStorageBucket" type="text" placeholder="Firebase Storage Bucket">
-                    <input id="firebaseAppId" type="text" placeholder="Firebase App ID">
-                    <input id="firebaseMeasurementId" type="text" placeholder="Firebase Measurement ID (optional)">
-                    <button type="button" id="saveCloudSettingsBtn" class="submit-button">Save Cloud Settings</button>
-                </div>
-            </div>
+             <div class="form-group">
+                 <label>Cloud Sync Setup (Optional)</label>
+                 <div class="cloud-settings">
+                     <div class="note mt0">Add your Supabase values to enable cloud sync. Leave empty to keep using local storage only.</div>
+                     <input id="supabaseUrl" type="text" placeholder="Supabase URL (e.g. https://xxx.supabase.co)">
+                     <input id="supabaseAnonKey" type="text" placeholder="Supabase Anon Key">
+                     <input id="supabaseStorageBucket" type="text" placeholder="Supabase Storage Bucket (default: memes)">
+                     <button type="button" id="saveCloudSettingsBtn" class="submit-button">Save Cloud Settings</button>
+                 </div>
+             </div>
 
-            <div class="form-group">
+             <div class="form-group">
                 <label>Media Type</label>
                 <select id="mediaType"><option>Video</option><option>Audio</option><option>Image</option></select>
             </div>
@@ -102,16 +106,6 @@
         <button id="clearData" class="submit-button secondary-button">Clear All Submissions</button>
     </div>
 
-    <script type="importmap">
-    {
-        "imports": {
-            "firebase/app": "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js",
-            "firebase/firestore": "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js",
-            "firebase/storage": "https://www.gstatic.com/firebasejs/10.13.0/firebase-storage.js",
-            "firebase/auth": "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js"
-        }
-    }
-    </script>
     <script type="module" src="js/submit.js"></script>
 </body>
 </html>

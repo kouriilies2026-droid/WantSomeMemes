@@ -1,7 +1,8 @@
 import { getAllMemes, putMeme, deleteMeme, createEl, emptyEl, checkIndexedDBQuota } from './app.js';
-import { getConfig, saveConfig, hasConfig, uploadMeme, saveMemeToCloud } from './firebase.js';
+import { getSupabaseConfig, saveSupabaseConfig, hasSupabaseConfig, uploadMemeToSupabase, saveMemeToSupabase, uploadToSupabaseStorage } from './supabase.js';
 import { categories, specialTags } from './categories.js';
 import { initLanguage, createLangToggle } from './i18n.js';
+import { SUPABASE_CONFIG_KEYS } from './config.js';
 
 initLanguage();
 
@@ -64,20 +65,20 @@ async function updateCounts() {
 }
 
 function loadCloudSettings() {
-  const c = getConfig();
-  ['firebaseApiKey','firebaseAuthDomain','firebaseProjectId','firebaseStorageBucket','firebaseAppId','firebaseMeasurementId'].forEach(id => {
-    const key = id.replace('firebase','').replace(/^./, m => m.toLowerCase());
-    document.getElementById(id).value = c[key] || '';
-  });
+  const c = getSupabaseConfig();
+  document.getElementById('supabaseUrl').value = c.url || '';
+  document.getElementById('supabaseAnonKey').value = c.anonKey || '';
+  document.getElementById('supabaseStorageBucket').value = c.storageBucket || 'memes';
 }
 
 function saveCloudSettings() {
-  const config = {};
-  ['firebaseApiKey','firebaseAuthDomain','firebaseProjectId','firebaseStorageBucket','firebaseAppId','firebaseMeasurementId'].forEach(id => {
-    config[id.replace('firebase','').replace(/^./, m => m.toLowerCase())] = document.getElementById(id).value;
-  });
-  saveConfig(config);
-  setFormMessage('Cloud settings saved.', 'success');
+  const config = {
+    url: document.getElementById('supabaseUrl').value.trim(),
+    anonKey: document.getElementById('supabaseAnonKey').value.trim(),
+    storageBucket: document.getElementById('supabaseStorageBucket').value.trim() || 'memes'
+  };
+  saveSupabaseConfig(config);
+  setFormMessage('Supabase settings saved.', 'success');
 }
 
 function generateSmartTags(fileName) {
@@ -205,14 +206,23 @@ document.getElementById('uploadForm').addEventListener('submit', async function 
 
   await putMeme(newMeme);
 
-  if (hasConfig() && fileForCloud) {
+  if (hasSupabaseConfig() && fileForCloud) {
     setFormMessage('Uploading to cloud...', 'success');
-    const result = await uploadMeme(fileForCloud, newMeme, null);
-    if (result.ok) await putMeme({ ...newMeme, ...result.meme });
-    else { setFormMessage('Saved locally, cloud: ' + result.error, 'error'); resetForm(); return; }
-  } else if (hasConfig() && newMeme.fileUrl) {
+    try {
+      const supabasePath = 'memes/' + Date.now() + '-' + newMeme.name.replace(/\s+/g, '_');
+      const publicUrl = await uploadToSupabaseStorage(fileForCloud, supabasePath);
+      newMeme.fileUrl = publicUrl;
+      newMeme.filePath = supabasePath;
+      await putMeme({ ...newMeme, fileUrl: publicUrl, filePath: supabasePath });
+      const result = await uploadMemeToSupabase({ ...newMeme, fileUrl: publicUrl, filePath: supabasePath });
+      if (result.ok) await putMeme({ ...newMeme, ...result.meme });
+      else { setFormMessage('Saved locally, cloud: ' + result.error, 'error'); resetForm(); return; }
+    } catch (e) {
+      setFormMessage('Saved locally, upload failed: ' + e.message, 'error');
+    }
+  } else if (hasSupabaseConfig() && newMeme.fileUrl) {
     setFormMessage('Saving to cloud...', 'success');
-    const result = await saveMemeToCloud(newMeme);
+    const result = await saveMemeToSupabase(newMeme);
     if (result.ok) await putMeme({ ...newMeme, ...result.meme });
     else { setFormMessage('Saved locally, cloud: ' + result.error, 'error'); resetForm(); return; }
   }

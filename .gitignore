@@ -1,6 +1,3 @@
-# Local Firebase config - DO NOT commit this file
-js/config.firebase.js
-
 # Dependencies
 node_modules/
 
@@ -19,3 +16,4 @@ npm-debug.log*
 # Build
 dist/
 build/
+.aider*

@@ -2,7 +2,7 @@ import { getAllMemes, putMeme, deleteMeme, getMediaSource, escapeHtml, showToast
 import { initLanguage, createLangToggle } from './i18n.js';
 import { categories, specialTags, languages, audioExts, imageExts } from './categories.js';
 import { exportTrimmed, exportTransparent } from './export.js';
-import { syncToIndexedDB } from './firebase.js';
+import { syncToIndexedDB, hasSupabaseConfig, startRealtimeListener, uploadMemeToSupabase, saveMemeToSupabase, updateMemeInSupabase, deleteMemeFromSupabase, uploadToSupabaseStorage, deleteFromSupabaseStorage, signInAdmin, signOutAdmin, onAdminAuthChange, onChange } from './supabase.js';
 
 initLanguage();
 
@@ -80,24 +80,11 @@ async function hashPassword(pwd) {
   return sha256Fallback(pwd);
 }
 
-let firebase = null;
-
-async function loadFirebase() {
-  if (firebase) return firebase;
-  try {
-    firebase = await import('./firebase.js');
-    return firebase;
-  } catch (e) {
-    console.warn('Firebase not available:', e);
-    return null;
-  }
-}
-
 function showLoginForm() {
   document.getElementById('accessDenied').style.display = 'flex';
   document.getElementById('adminContent').classList.add('hidden');
   document.getElementById('deniedTitle').textContent = '🔒 Admin Login';
-  document.getElementById('deniedMessage').textContent = 'Enter admin password (or email for Firebase Auth).';
+  document.getElementById('deniedMessage').textContent = 'Enter admin password (or email for Supabase Auth).';
   document.getElementById('adminPasswordInput').classList.remove('hidden');
   document.getElementById('adminPasswordInput').placeholder = 'Password';
   document.getElementById('adminPasswordConfirm').classList.add('hidden');
@@ -113,22 +100,20 @@ function showLoginForm() {
 async function handleLogin() {
   const pwd = document.getElementById('adminPasswordInput').value;
   const error = document.getElementById('adminLoginError');
-  const fb = await loadFirebase();
-  const hasFirebase = fb && fb.hasConfig();
 
-  if (hasFirebase && pwd.includes('@')) {
+  if (hasSupabaseConfig() && pwd.includes('@')) {
     const email = pwd;
-    const passwordInput = prompt('Enter Firebase password for ' + email);
+    const passwordInput = prompt('Enter Supabase password for ' + email);
     if (!passwordInput) { error.textContent = 'Password required.'; return; }
-    const result = await fb.signInAdmin(email, passwordInput);
+    const result = await signInAdmin(email, passwordInput);
     if (result.ok) {
-      localStorage.setItem(ADMIN_TOKEN_KEY, 'firebase:' + email);
+      localStorage.setItem(ADMIN_TOKEN_KEY, 'supabase:' + email);
       localStorage.setItem(ADMIN_FINGERPRINT_KEY, getDeviceFingerprint());
       sessionStorage.setItem(ADMIN_SESSION_KEY, 'true');
-      showAdminPanel(fb);
-      fb.startListener();
-      fb.onChange(function () { loadMemes(); updateAdminStatus(); });
-      fb.onAdminAuthChange(user => {
+      showAdminPanel();
+      startRealtimeListener();
+      onChange(function () { loadMemes(); updateAdminStatus(); });
+      onAdminAuthChange(user => {
         if (!user) {
           localStorage.removeItem(ADMIN_TOKEN_KEY);
           localStorage.removeItem(ADMIN_FINGERPRINT_KEY);
@@ -148,10 +133,10 @@ async function handleLogin() {
     localStorage.setItem(ADMIN_TOKEN_KEY, hash);
     localStorage.setItem(ADMIN_FINGERPRINT_KEY, getDeviceFingerprint());
     sessionStorage.setItem(ADMIN_SESSION_KEY, 'true');
-    showAdminPanel(fb);
-    if (hasFirebase) {
-      fb.startListener();
-      fb.onChange(function () { loadMemes(); updateAdminStatus(); });
+    showAdminPanel();
+    if (hasSupabaseConfig()) {
+      startRealtimeListener();
+      onChange(function () { loadMemes(); updateAdminStatus(); });
     }
   } else {
     error.textContent = 'Wrong password.';
@@ -160,15 +145,13 @@ async function handleLogin() {
   }
 }
 
-async function showAdminPanel(fb) {
+async function showAdminPanel() {
   document.getElementById('accessDenied').style.display = 'none';
   document.getElementById('adminContent').classList.remove('hidden');
-  if (!fb) fb = await loadFirebase();
-  if (fb) {
-    document.getElementById('cloudStatus').textContent = fb.hasConfig()
-      ? 'Cloud sync: enabled and ready.' : 'Cloud sync: not configured, using local storage only.';
+  if (hasSupabaseConfig()) {
+    document.getElementById('cloudStatus').textContent = 'Cloud sync: enabled and ready.';
   } else {
-    document.getElementById('cloudStatus').textContent = 'Cloud sync: not available.';
+    document.getElementById('cloudStatus').textContent = 'Cloud sync: not configured, using local storage only.';
   }
   await loadMemes();
   updateAdminStatus();
@@ -185,8 +168,7 @@ async function loadMemes() {
     emptyEl(tbody);
   }
   try {
-    const fb = await loadFirebase();
-    if (fb) await fb.syncToIndexedDB();
+    await syncToIndexedDB();
   } catch (e) { console.warn('Sync error:', e); }
 
   const all = await getAllMemes();
@@ -359,11 +341,10 @@ async function acceptMeme(id) {
   target.status = 'approved';
   target.updatedAt = Date.now();
   await putMeme(target);
-  const fb = await loadFirebase();
-  if (fb && target.cloudDocId) await fb.updateMeme(target, 'approved');
+  await updateMemeInSupabase(target, 'approved');
   await loadMemes();
   updateAdminStatus();
-  alert('Meme approved!');
+  showToast('Meme approved!');
 }
 
 async function rejectMeme(id, listType) {
@@ -371,12 +352,11 @@ async function rejectMeme(id, listType) {
   const all = await getAllMemes();
   const target = all.find(m => String(m.id) === String(id));
   if (!target) return;
-  const fb = await loadFirebase();
-  if (fb && target.cloudDocId) await fb.deleteCloudMeme(target);
+  await deleteMemeFromSupabase(target);
   await deleteMeme(target.id);
   await loadMemes();
   updateAdminStatus();
-  alert(listType === 'pending' ? 'Meme rejected.' : 'Meme deleted from library.');
+  showToast(listType === 'pending' ? 'Meme rejected.' : 'Meme deleted from library.');
 }
 
 function updateAdminStatus() {
@@ -468,8 +448,7 @@ document.getElementById('clearPending').addEventListener('click', async function
   if (!confirm('Clear all pending memes?')) return;
   const all = await getAllMemes();
   for (const m of all.filter(m => m.status === 'pending')) {
-    const fb = await loadFirebase();
-    if (fb && m.cloudDocId) await fb.deleteCloudMeme(m);
+    await deleteMemeFromSupabase(m);
     await deleteMeme(m.id);
   }
   await loadMemes();
@@ -481,8 +460,7 @@ document.getElementById('clearApproved').addEventListener('click', async functio
   if (!confirm('Clear all approved memes?')) return;
   const all = await getAllMemes();
   for (const m of all.filter(m => m.status === 'approved')) {
-    const fb = await loadFirebase();
-    if (fb && m.cloudDocId) await fb.deleteCloudMeme(m);
+    await deleteMemeFromSupabase(m);
     await deleteMeme(m.id);
   }
   await loadMemes();
@@ -504,30 +482,18 @@ function init() {
   initialized = true;
   const token = localStorage.getItem(ADMIN_TOKEN_KEY);
 
-  if (token && (token === ADMIN_HASH || token.startsWith('firebase:'))) {
-    if (sessionStorage.getItem(ADMIN_SESSION_KEY) !== 'true') {
-      sessionStorage.setItem(ADMIN_SESSION_KEY, 'true');
-    }
-    showAdminPanel();
-    loadFirebase().then(fb => {
-      if (fb && fb.hasConfig()) {
-        fb.startListener();
-        fb.onChange(function () { loadMemes(); updateAdminStatus(); });
-        if (token.startsWith('firebase:')) {
-          fb.onAdminAuthChange(user => {
-            if (!user) {
-              localStorage.removeItem(ADMIN_TOKEN_KEY);
-              localStorage.removeItem(ADMIN_FINGERPRINT_KEY);
-              sessionStorage.removeItem(ADMIN_SESSION_KEY);
-              showLoginForm();
-            }
-          });
-        }
-      }
-    });
-  } else {
-    showLoginForm();
-  }
+   if (token && (token === ADMIN_HASH || token.startsWith('supabase:'))) {
+     if (sessionStorage.getItem(ADMIN_SESSION_KEY) !== 'true') {
+       sessionStorage.setItem(ADMIN_SESSION_KEY, 'true');
+     }
+     showAdminPanel();
+     if (hasSupabaseConfig()) {
+       startRealtimeListener();
+       onChange(function () { loadMemes(); updateAdminStatus(); });
+     }
+   } else {
+     showLoginForm();
+   }
 
   updateAdminStatus();
   checkStorageLimit();

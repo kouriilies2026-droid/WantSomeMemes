@@ -1,5 +1,5 @@
 import { getAllMemes, getMediaSource, pickVideosDirectory, getVideosDirName, resolveMediaForDisplay, revokeBlobUrl, cleanupBlobCache, migrateFromLocalStorage, escapeHtml, showToast, createEl, emptyEl, FAVORITE_IDS_KEY } from './app.js';
-import { hasConfig, syncToIndexedDB, startListener, onChange } from './firebase.js';
+import { hasSupabaseConfig, syncToIndexedDB, startRealtimeListener, onChange } from './supabase.js';
 import { buildIndex, search } from './search.js';
 import { activateVideo, toggleGreenScreen, initTrimmer, openFullscreen, observeLazyMedia, handleDragStart, closeFullscreen } from './player.js';
 import { exportTrimmed, exportTransparent } from './export.js';
@@ -498,8 +498,8 @@ document.addEventListener('DOMContentLoaded', async function () {
     if (syncToIndexedDB) {
       await syncToIndexedDB();
       await loadMemesIntoCache();
-      if (hasConfig()) {
-        startListener();
+      if (hasSupabaseConfig()) {
+        startRealtimeListener();
         onChange(async function () {
           await loadMemesIntoCache();
           renderCategoryOptions();
